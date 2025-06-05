@@ -139,44 +139,49 @@ export default function ChatRoom() {
 
 
   return (
-  <div className="max-w-md mx-auto p-4 bg-white rounded-lg shadow-md flex flex-col h-[500px]">
-    <div className="messages flex-grow overflow-y-auto border border-gray-300 rounded-md p-3 mb-4 bg-gray-50">
-      {messages.length === 0 && (
+  <div className="flex flex-col h-screen max-w-3xl mx-auto p-4 bg-white rounded-lg shadow-md">
+    {/* Messages container */}
+    <div className="flex-grow overflow-y-auto border border-gray-300 rounded-md p-4 bg-gray-50 mb-4">
+      {messages.length === 0 ? (
         <p className="text-center text-gray-400 italic">No messages yet.</p>
-      )}
-      {messages.map((m, i) => (
-        <div
-          key={i}
-          className={`mb-3 max-w-[80%] px-3 py-2 rounded-lg ${
-            m.sender === user?.given_name
-              ? "bg-pink-500 text-white self-end rounded-tr-none"
-              : "bg-gray-200 text-gray-900 self-start rounded-bl-none"
-          }`}
-        >
-          <strong className="block">{m.sender}:</strong>
-          <span>{m.text}</span>
-          <div className="text-xs text-gray-200 mt-1 text-right">
-            {new Date(m.timestamp).toLocaleTimeString()}
+      ) : (
+        messages.map((m, i) => (
+          <div
+            key={i}
+            className={`mb-3 max-w-[80%] px-4 py-2 rounded-lg break-words ${
+              m.sender === user?.given_name
+                ? "bg-pink-500 text-white self-end rounded-tr-none"
+                : "bg-gray-200 text-gray-900 self-start rounded-bl-none"
+            }`}
+          >
+            <strong className="block">{m.sender}:</strong>
+            <span>{m.text}</span>
+            <div className="text-xs text-gray-200 mt-1 text-right">
+              {new Date(m.timestamp).toLocaleTimeString()}
+            </div>
           </div>
-        </div>
-      ))}
+        ))
+      )}
     </div>
 
-    <div className="flex gap-2">
+    {/* Input and send button */}
+    <div className="flex gap-3">
       <input
+        type="text"
         value={input}
         onChange={(e) => setInput(e.target.value)}
-        placeholder="Type message"
-        className="flex-grow border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-pink-400"
+        placeholder="Type your message..."
+        className="flex-grow border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-pink-400"
       />
       <button
         onClick={sendMessage}
-        className="bg-pink-600 hover:bg-pink-700 text-white px-5 py-2 rounded-full font-semibold transition"
+        className="bg-pink-600 hover:bg-pink-700 text-white px-6 py-3 rounded-full font-semibold transition"
       >
         Send
       </button>
     </div>
   </div>
 );
+
 
 }
