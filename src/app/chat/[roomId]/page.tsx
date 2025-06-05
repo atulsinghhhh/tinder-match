@@ -88,8 +88,6 @@ type Message = {
 
 export default function ChatRoom() {
   const { user } = useKindeAuth();
-  if (!user) return <p className="text-center text-white">Loading user session...</p>;
-  
   const params = useParams();
   const roomId = params.roomId as string;
 

@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import Navbar from "./components/navbar";
+import { KindeProvider } from "@kinde-oss/kinde-auth-nextjs";
+
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -33,7 +35,8 @@ export default function RootLayout({
         <div className="relative w-full flex items-center justify-center">
           <Navbar/>
         </div>
-        {children}
+          {children}
+  
       </body>
     </html>
   );
