@@ -216,58 +216,73 @@ export const getMatches=async (currentUserId: string) => {
     return matches as Neo4jUser[]
 }
 
-export const createMessage = async (
-    roomId: string,
-    sender: string,
-    text: string,
-    timestamp: number
-    ) => {
-    const session = driver.session();
-    try {
+// export const createMessage = async (
+//     roomId: string,
+//     sender: string,
+//     text: string,
+//     timestamp: number
+// ) => {
+//     await driver.executeQuery(
+//     `
+//     MATCH (u1:User)-[:MEMBER_OF]->(r:Room {id: $roomId})<-[:MEMBER_OF]-(u2:User)
+//     CREATE (m:Message {
+//         sender: $sender,
+//         text: $text,
+//         timestamp: $timestamp
+//     })-[:IN]->(r)
+//     `,
+//     { roomId, sender, text, timestamp }
+//     );
+// };
+
+// backend/neo4j.ts
+// export const createMessage = async (
+//     roomId: string,
+//     sender: string,
+//     text: string,
+//     timestamp: number
+//     ) => {
+//     await driver.executeQuery(
+//         `
+//         MATCH (u:User {applicationId: $sender})
+//         MERGE (r:Room {id: $roomId})
+//         CREATE (u)-[:SENT]->(m:Message {
+//         text: $text,
+//         timestamp: $timestamp
+//         })-[:TO]->(r)
+//         `,
+//         {
+//         roomId,
+//         sender,
+//         text,
+//         timestamp,
+//         }
+//     );
+// };
+
+
+
+
+
+export async function createMessage(room: string, sender: string, text: string, timestamp: number) {
+  const session = driver.session();
+  try {
     const result = await session.run(
-        `
-        MERGE (r:Room {id: $roomId})
-        CREATE (m:Message {
-            text: $text,
-            sender: $sender,
-            timestamp: $timestamp
-        })
-        MERGE (r)-[:HAS_MESSAGE]->(m)
-        RETURN m
-        `,
-        { roomId, text, sender, timestamp }
+      `
+      MERGE (r:Room {name: $room})
+      CREATE (m:Message {text: $text, sender: $sender, timestamp: $timestamp})
+      MERGE (r)-[:HAS_MESSAGE]->(m)
+      RETURN m
+      `,
+      { room, text, sender, timestamp }
     );
 
+    if (result.records.length === 0) return null;
     return result.records[0].get("m");
-    } catch (error) {
-        console.error("❌ Error creating message:", error);
-        throw error;
-    } finally {
-        await session.close();
-    }
-};
-
-
-
-// export async function createMessage(room: string, sender: string, text: string, timestamp: number) {
-//   const session = driver.session();
-//   try {
-//     const result = await session.run(
-//       `
-//       MERGE (r:Room {name: $room})
-//       CREATE (m:Message {text: $text, sender: $sender, timestamp: $timestamp})
-//       MERGE (r)-[:HAS_MESSAGE]->(m)
-//       RETURN m
-//       `,
-//       { room, text, sender, timestamp }
-//     );
-
-//     if (result.records.length === 0) return null;
-//     return result.records[0].get("m");
-//   } finally {
-//     await session.close();
-//   }
-// }
+  } finally {
+    await session.close();
+  }
+}
 
 // export const getMessages = async (roomName: string) => {
 //   const result = await driver.executeQuery(
