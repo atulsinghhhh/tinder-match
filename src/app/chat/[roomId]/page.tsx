@@ -139,25 +139,44 @@ export default function ChatRoom() {
 
 
   return (
-    <div>
-      <div className="messages h-96 overflow-y-auto border p-2 mb-2">
-        {messages.length === 0 && <p>No messages yet.</p>}
-        {messages.map((m, i) => (
-          <div key={i} className={m.sender === user?.given_name ? 'text-right' : 'text-left'}>
-            <strong>{m.sender}:</strong> {m.text}
-            <div className="text-xs text-gray-500">{new Date(m.timestamp).toLocaleTimeString()}</div>
+  <div className="max-w-md mx-auto p-4 bg-white rounded-lg shadow-md flex flex-col h-[500px]">
+    <div className="messages flex-grow overflow-y-auto border border-gray-300 rounded-md p-3 mb-4 bg-gray-50">
+      {messages.length === 0 && (
+        <p className="text-center text-gray-400 italic">No messages yet.</p>
+      )}
+      {messages.map((m, i) => (
+        <div
+          key={i}
+          className={`mb-3 max-w-[80%] px-3 py-2 rounded-lg ${
+            m.sender === user?.given_name
+              ? "bg-pink-500 text-white self-end rounded-tr-none"
+              : "bg-gray-200 text-gray-900 self-start rounded-bl-none"
+          }`}
+        >
+          <strong className="block">{m.sender}:</strong>
+          <span>{m.text}</span>
+          <div className="text-xs text-gray-200 mt-1 text-right">
+            {new Date(m.timestamp).toLocaleTimeString()}
           </div>
-        ))}
-      </div>
+        </div>
+      ))}
+    </div>
+
+    <div className="flex gap-2">
       <input
         value={input}
         onChange={(e) => setInput(e.target.value)}
         placeholder="Type message"
-        className="border p-2 w-full mb-2"
+        className="flex-grow border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-pink-400"
       />
-      <button onClick={sendMessage} className="bg-blue-600 text-white px-4 py-2 rounded">
+      <button
+        onClick={sendMessage}
+        className="bg-pink-600 hover:bg-pink-700 text-white px-5 py-2 rounded-full font-semibold transition"
+      >
         Send
       </button>
     </div>
-  );
+  </div>
+);
+
 }
