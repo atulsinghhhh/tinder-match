@@ -78,7 +78,7 @@ import { useEffect, useState } from 'react';
 import { pusherClient } from '@/libs/pusherClient';
 import { useParams } from 'next/navigation';
 import { useKindeAuth } from '@kinde-oss/kinde-auth-nextjs';
-
+import { createUser } from '@/app/neo4j.action';
 type Message = {
   sender: string;
   text: string;
@@ -88,6 +88,8 @@ type Message = {
 
 export default function ChatRoom() {
   const { user } = useKindeAuth();
+  if (!user) return <p className="text-center text-white">Loading user session...</p>;
+  
   const params = useParams();
   const roomId = params.roomId as string;
 
@@ -139,24 +141,24 @@ export default function ChatRoom() {
 
 
   return (
-  <div className="flex flex-col h-screen max-w-3xl mx-auto p-4 bg-white rounded-lg shadow-md">
-    {/* Messages container */}
-    <div className="flex-grow overflow-y-auto border border-gray-300 rounded-md p-4 bg-gray-50 mb-4">
+  <div className="flex flex-col h-screen w-full bg-gray-900 text-white p-4">
+    {/* Messages */}
+    <div className="flex-grow overflow-y-auto rounded-lg p-4 mb-4 space-y-2">
       {messages.length === 0 ? (
         <p className="text-center text-gray-400 italic">No messages yet.</p>
       ) : (
         messages.map((m, i) => (
           <div
             key={i}
-            className={`mb-3 max-w-[80%] px-4 py-2 rounded-lg break-words ${
+            className={`max-w-[15%] px-4 py-2 rounded-2xl text-sm break-words ${
               m.sender === user?.given_name
-                ? "bg-pink-500 text-white self-end rounded-tr-none"
-                : "bg-gray-200 text-gray-900 self-start rounded-bl-none"
+                ? "bg-pink-500 text-white self-end rounded-tr-none ml-auto"
+                : "bg-red-600 text-white self-start rounded-bl-none mr-auto"
             }`}
           >
-            <strong className="block">{m.sender}:</strong>
+            <strong className="block text-xs mb-1">{m.sender}</strong>
             <span>{m.text}</span>
-            <div className="text-xs text-gray-200 mt-1 text-right">
+            <div className="text-[10px] text-gray-300 mt-1 text-right">
               {new Date(m.timestamp).toLocaleTimeString()}
             </div>
           </div>
@@ -164,14 +166,14 @@ export default function ChatRoom() {
       )}
     </div>
 
-    {/* Input and send button */}
+    {/* Input + Send Button */}
     <div className="flex gap-3">
       <input
         type="text"
         value={input}
         onChange={(e) => setInput(e.target.value)}
         placeholder="Type your message..."
-        className="flex-grow border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-pink-400"
+        className="flex-grow rounded-full px-4 py-3 bg-gray-800 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-pink-400"
       />
       <button
         onClick={sendMessage}
@@ -182,6 +184,7 @@ export default function ChatRoom() {
     </div>
   </div>
 );
+
 
 
 }
