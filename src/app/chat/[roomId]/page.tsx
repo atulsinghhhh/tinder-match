@@ -74,9 +74,10 @@
 
 'use client';
 
-import { useEffect, useState } from "react";
-import { pusherClient } from "@/libs/pusherClient";
-import { useParams } from "next/navigation";
+import { useEffect, useState } from 'react';
+import { pusherClient } from '@/libs/pusherClient';
+import { useParams } from 'next/navigation';
+import { useKindeAuth } from '@kinde-oss/kinde-auth-nextjs';
 
 type Message = {
   sender: string;
@@ -86,71 +87,65 @@ type Message = {
 };
 
 export default function ChatRoom() {
+  const { user } = useKindeAuth();
   const params = useParams();
   const roomId = params.roomId as string;
 
   const [messages, setMessages] = useState<Message[]>([]);
-  const [input, setInput] = useState("");
-  const senderName = "John"; // Replace this with actual user session/name
+  const [input, setInput] = useState('');
 
   useEffect(() => {
-    if (!roomId) {
-      console.warn("No roomId provided");
-      return;
-    }
+  if (!roomId) return;
 
-    console.log("Subscribing to Pusher channel:", roomId);
-    const channel = pusherClient.subscribe(roomId);
+  const channel = pusherClient.subscribe(roomId);
 
-    channel.bind("new-message", (msg: Message) => {
-      console.log("Received new-message event:", msg);
-      setMessages((prev) => [...prev, msg]);
+  channel.bind("new-message", (msg: Message) => {
+    setMessages(prev => {
+      // Avoid duplicates if message already exists (optional)
+      if (prev.find(m => m.timestamp === msg.timestamp && m.sender === msg.sender)) {
+        return prev;
+      }
+      return [...prev, msg];
     });
+  });
 
-    return () => {
-      console.log("Unsubscribing from channel:", roomId);
-      pusherClient.unsubscribe(roomId);
-    };
-  }, [roomId]);
+  return () => {
+    channel.unbind_all();
+    pusherClient.unsubscribe(roomId);
+  };
+}, [roomId]);
+
 
   const sendMessage = async () => {
-    if (!input.trim()) return;
+  if (!input.trim()) return;
 
-    const msg = {
-      roomId,
-      sender: senderName,
-      text: input,
-      timestamp: Date.now(),
-    };
+  const msg = { roomId, sender: user?.given_name || "Unknown", text: input, timestamp: Date.now() };
 
-    try {
-      const res = await fetch("/api/messages", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(msg),
-      });
+  try {
+    const res = await fetch("/api/messages", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(msg),
+    });
 
-      if (res.ok) {
-        setInput("");
-        console.log("Message sent successfully");
-      } else {
-        const error = await res.json();
-        console.error("Failed to send message:", error);
-      }
-    } catch (error) {
-      console.error("Network error:", error);
+    if (res.ok) {
+      setInput("");
+      // DO NOT add message to state here
     }
-  };
+  } catch (err) {
+    console.error(err);
+  }
+};
+
 
   return (
     <div>
       <div className="messages h-96 overflow-y-auto border p-2 mb-2">
         {messages.length === 0 && <p>No messages yet.</p>}
-        {messages.map((message, index) => (
-          <div key={index}>
-            <strong>{message.sender}:</strong> {message.text}
+        {messages.map((m, i) => (
+          <div key={i} className={m.sender === user?.given_name ? 'text-right' : 'text-left'}>
+            <strong>{m.sender}:</strong> {m.text}
+            <div className="text-xs text-gray-500">{new Date(m.timestamp).toLocaleTimeString()}</div>
           </div>
         ))}
       </div>

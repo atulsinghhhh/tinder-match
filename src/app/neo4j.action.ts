@@ -264,24 +264,58 @@ export const getMatches=async (currentUserId: string) => {
 
 
 
-export async function createMessage(room: string, sender: string, text: string, timestamp: number) {
-  const session = driver.session();
-  try {
-    const result = await session.run(
-      `
-      MERGE (r:Room {name: $room})
-      CREATE (m:Message {text: $text, sender: $sender, timestamp: $timestamp})
-      MERGE (r)-[:HAS_MESSAGE]->(m)
-      RETURN m
-      `,
-      { room, text, sender, timestamp }
-    );
+// export async function createMessage(room: string, sender: string, text: string, timestamp: number) {
+//     const session = driver.session();
+//     try {
+//         const result = await session.run(
+//         `
+//         MERGE (r:Room {name: $room})
+//         CREATE (m:Message {text: $text, sender: $sender, timestamp: $timestamp})
+//         MERGE (r)-[:HAS_MESSAGE]->(m)
+//         RETURN m
+//         `,
+//         { room, text, sender, timestamp }
+//         );
 
-    if (result.records.length === 0) return null;
-    return result.records[0].get("m");
-  } finally {
-    await session.close();
-  }
+//         if (result.records.length === 0) return null;
+//         return result.records[0].get("m");
+//     } finally {
+//         await session.close();
+//     }
+// }
+export async function createMessage(room: string, sender: string, text: string, timestamp: number) {
+    const session = driver.session();
+    try {
+        await session.run(`
+        MERGE (r:Room {id: $room})
+        CREATE (m:Message {text: $text, sender: $sender, timestamp: $timestamp})
+        MERGE (r)-[:HAS_MESSAGE]->(m)
+        `, { room, text, sender, timestamp });
+    } finally {
+        await session.close();
+    }
+}
+
+export async function createRoomIfMatched(userId1: string, userId2: string) {
+    const session = driver.session();
+    const sorted = [userId1, userId2].sort();
+    const roomId = `${sorted[0]}_${sorted[1]}`;
+
+    try {
+        const result = await session.run(`
+        MATCH (a:User {id: $userId1})-[:LIKES]->(b:User {id: $userId2})
+        MATCH (b)-[:LIKES]->(a)
+        MERGE (r:Room {id: $roomId})
+        MERGE (a)-[:IN_ROOM]->(r)
+        MERGE (b)-[:IN_ROOM]->(r)
+        RETURN r.id AS roomId
+        `, { userId1, userId2, roomId });
+
+        if (result.records.length > 0) return roomId;
+        return null;
+    } finally {
+        await session.close();
+    }
 }
 
 // export const getMessages = async (roomName: string) => {

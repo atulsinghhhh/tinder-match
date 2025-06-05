@@ -18,7 +18,7 @@ export default function ClientMatchPage({ matches }: { matches: any[] }) {
             ) : (
                 matches.map((users) => (
                     // Wrap Card inside Link here:
-                    <Link href={`/chat/${users.applicationId}`} key={users.applicationId}>
+                    <Link href={`/chat/room`} key={users.applicationId}>
                         <Card className="cursor-pointer hover:shadow-lg transition my-4 bg-gray-800">
                             <CardHeader>
                             <CardTitle className=' flex flex-col text-white text-center text-2xl'>{users.firstname} {users.lastname}</CardTitle>
